@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warm Audio WeChat Video Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        
+        .metric-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+        
+        .metric-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            border-color: gold;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 500px;
+            width: 100%;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .data-table th {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .highlight {
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .metric-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .chart-wrapper {
+                height: 400px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Warm Audio WeChat Video Data</h1>
+            <p class="subtitle" id="reportDate">September, 2025</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="chart-container">
+                <h2 class="chart-title">Engagement Metrics</h2>
+                
+                <div class="controls">
+                    <button class="metric-btn active" data-metric="summary">Summary</button>
+                    <button class="metric-btn" data-metric="views">Views</button>
+                    <button class="metric-btn" data-metric="likes">Likes</button>
+                    <button class="metric-btn" data-metric="saves">Saves</button>
+                    <button class="metric-btn" data-metric="shares">Shares</button>
+                    <button class="metric-btn" data-metric="comments">Comments</button>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2 style="margin-bottom: 20px; text-align: center">Full Table</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Views</th>
+                            <th>Likes</th>
+                            <th>Saves</th>
+                            <th>Shares</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td>SCN season 2-4 - HEAT part 1</td>
+                            <td>1760</td>
+                            <td>30</td>
+                            <td>27</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>Fady Gergis - A4-1B Video 2</td>
+                            <td>420</td>
+                            <td>3</td>
+                            <td>1</td>
+                            <td>5</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>SCN season 2-5 - HEAT part 2</td>
+                            <td>1462</td>
+                            <td>18</td>
+                            <td>9</td>
+                            <td>2</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>Fady Gergis - A4-1B Video 3</td>
+                            <td>1520</td>
+                            <td>3</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>Fady Gergis - A4-1B Video 4</td>
+                            <td>301</td>
+                            <td>2</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer>
+            <p>by Danny Xu</p>
+        </footer>
+    </div>
+
+    <script>
+        // 使用CSV数据替换初始占位数据
+        const initialData = {
+            titles: [
+                "SCN season 2-4 - HEAT part 1",
+                "Fady Gergis - A4-1B Video 2",
+                "SCN season 2-5 - HEAT part 2",
+                "Fady Gergis - A4-1B Video 3",
+                "Fady Gergis - A4-1B Video 4"
+            ],
+            views: [1760, 420, 1462, 1520, 301],
+            likes: [30, 3, 18, 3, 2],
+            saves: [27, 1, 9, 0, 0],
+            comments: [0, 0, 0, 0, 0],
+            shares: [0, 5, 2, 0, 0]
+        };
+
+        // 当前使用的数据
+        let videoData = {...initialData};
+        let barChart = null;
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 先渲染表格（立即显示）
+            renderTable();
+            
+            // 延迟加载图表（500ms后执行）
+            setTimeout(initChart, 500);
+            setupEventListeners();
+        });
+
+        // 渲染表格
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            for (let i = 0; i < videoData.titles.length; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${videoData.titles[i]}</td>
+                    <td>${videoData.views[i]}</td>
+                    <td>${videoData.likes[i]}</td>
+                    <td>${videoData.saves[i]}</td>
+                    <td>${videoData.shares[i]}</td>
+                    <td>${videoData.comments[i]}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        // 初始化图表
+        function initChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            // 定义固定的颜色方案
+            const colorScheme = {
+                views: 'rgba(255, 99, 132, 0.7)',
+                likes: 'rgba(54, 162, 235, 0.7)',
+                saves: 'rgba(255, 206, 86, 0.7)',
+                shares: 'rgba(75, 192, 192, 0.7)',
+                comments: 'rgba(153, 102, 255, 0.7)',
+                border: {
+                    views: 'rgba(255, 99, 132, 1)',
+                    likes: 'rgba(54, 162, 235, 1)',
+                    saves: 'rgba(255, 206, 86, 1)',
+                    shares: 'rgba(75, 192, 192, 1)',
+                    comments: 'rgba(153, 102, 255, 1)'
+                }
+            };
+            
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: videoData.titles,
+                    datasets: [
+                        {
+                            label: 'Views',
+                            data: videoData.views,
+                            backgroundColor: colorScheme.views,
+                            borderColor: colorScheme.border.views,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Likes',
+                            data: videoData.likes,
+                            backgroundColor: colorScheme.likes,
+                            borderColor: colorScheme.border.likes,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Saves',
+                            data: videoData.saves,
+                            backgroundColor: colorScheme.saves,
+                            borderColor: colorScheme.border.saves,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Shares',
+                            data: videoData.shares,
+                            backgroundColor: colorScheme.shares,
+                            borderColor: colorScheme.border.shares,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Comments',
+                            data: videoData.comments,
+                            backgroundColor: colorScheme.comments,
+                            borderColor: colorScheme.border.comments,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: 'white',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            titleFont: {
+                                size: 16
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.8)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 指标按钮事件
+            const metricButtons = document.querySelectorAll('.metric-btn');
+            metricButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    metricButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    updateChart(this.getAttribute('data-metric'));
+                });
+            });
+        }
+
+        // 更新图表
+        function updateChart(metric) {
+            let datasets = [];
+            const colorScheme = {
+                views: 'rgba(255, 99, 132, 0.7)',
+                likes: 'rgba(54, 162, 235, 0.7)',
+                saves: 'rgba(255, 206, 86, 0.7)',
+                shares: 'rgba(75, 192, 192, 0.7)',
+                comments: 'rgba(153, 102, 255, 0.7)',
+                border: {
+                    views: 'rgba(255, 99, 132, 1)',
+                    likes: 'rgba(54, 162, 235, 1)',
+                    saves: 'rgba(255, 206, 86, 1)',
+                    shares: 'rgba(75, 192, 192, 1)',
+                    comments: 'rgba(153, 102, 255, 1)'
+                }
+            };
+            
+            if (metric === 'summary') {
+                datasets = [
+                    {
+                        label: 'Views',
+                        data: videoData.views,
+                        backgroundColor: colorScheme.views,
+                        borderColor: colorScheme.border.views,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Likes',
+                        data: videoData.likes,
+                        backgroundColor: colorScheme.likes,
+                        borderColor: colorScheme.border.likes,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Saves',
+                        data: videoData.saves,
+                        backgroundColor: colorScheme.saves,
+                        borderColor: colorScheme.border.saves,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Shares',
+                        data: videoData.shares,
+                        backgroundColor: colorScheme.shares,
+                        borderColor: colorScheme.border.shares,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Comments',
+                        data: videoData.comments,
+                        backgroundColor: colorScheme.comments,
+                        borderColor: colorScheme.border.comments,
+                        borderWidth: 1
+                    }
+                ];
+                
+                barChart.options.indexAxis = 'y';
+                barChart.options.plugins.legend.display = true;
+            } else {
+                datasets = [{
+                    label: metric.charAt(0).toUpperCase() + metric.slice(1),
+                    data: videoData[metric],
+                    backgroundColor: Array(videoData.titles.length).fill(colorScheme[metric]),
+                    borderColor: Array(videoData.titles.length).fill(colorScheme.border[metric]),
+                    borderWidth: 1
+                }];
+                
+                barChart.options.indexAxis = 'y';
+                barChart.options.plugins.legend.display = false;
+            }
+            
+            barChart.data.labels = videoData.titles;
+            barChart.data.datasets = datasets;
+            barChart.update();
+        }
+    </script>
+</body>
+</html>
